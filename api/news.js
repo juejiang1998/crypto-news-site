@@ -10,13 +10,12 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer sk-9qr3p5zatkf799hltxw49qjgf346fuu4"
+        "x-api-key": "sk-9qr3p5zatkf799hltxw49qjgf346fuu4"
       },
       body: JSON.stringify(body)
     });
 
     const text = await response.text();
-    console.log("b.ai raw:", response.status, text);
 
     if (!text) {
       return res.status(500).json({
