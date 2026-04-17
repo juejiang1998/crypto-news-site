@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今日加密热点</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --panel-2: #182243;
+      --text: #eef3ff;
+      --muted: #a8b3cf;
+      --line: #2b3a6d;
+      --accent: #6ea8fe;
+      --accent-2: #8ef0c8;
+      --danger: #ff8b8b;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #09101f 0%, #10182f 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      background: rgba(18, 26, 51, .95);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .controls input {
+      width: 100%;
+      min-width: 0;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .controls button {
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #08101f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .controls button.secondary {
+      color: var(--text);
+      background: #243459;
+      border: 1px solid var(--line);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status.ok { color: var(--accent-2); }
+    .status.error { color: var(--danger); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #22345f;
+      color: #dce8ff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .headline {
+      font-size: 17px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .summary {
+      color: #d0dbf5;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .link {
+      color: #b9d0ff;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .loading {
+      opacity: .8;
+      font-style: italic;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { padding: 16px; }
+      .title { font-size: 28px; }
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="title">今日加密热点</div>
+      <div class="subtitle">
+        页面会读取 CoinDesk 和 Blockworks 的 RSS，筛选最近 24 小时新闻，并用 b.ai 输出两个榜单：<br />
+        1）全球加密资讯 Top 5；2）最近 24 小时内的 5 条重点波场资讯。<br />
+        只要页面开着，它会每 10 分钟自动重新评估一次；如果没有更值得上榜的新闻，榜单会保持不变。
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="controls">
+        <input id="apiKey" type="password" placeholder="填入你的 b.ai API Key（仅用于本地测试）" />
+        <button id="saveBtn">保存 Key</button>
+        <button id="runBtn">立即更新</button>
+        <button id="clearBtn" class="secondary">清除 Key</button>
+      </div>
+      <div class="meta">
+        <span>新闻源：CoinDesk + Blockworks</span>
+        <span>范围：最近 24 小时</span>
+        <span>刷新：每 10 分钟</span>
+        <span>展示：全球 5 条 + 波场 5 条</span>
+        <span>模型：gpt-5-mini</span>
+      </div>
+      <div id="status" class="status">还没有开始。先填 b.ai API Key，然后点“立即更新”。</div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="section-head">
+          <div>
+            <div class="section-title">全球加密资讯</div>
+            <div class="section-subtitle">最近 24 小时内最重要的 5 条</div>
+          </div>
+          <div id="globalTime" class="section-subtitle">未更新</div>
+        </div>
+        <div id="globalList" class="list">
+          <div class="loading">等待数据…</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-head">
+          <div>
+            <div class="section-title">波场资讯</div>
+            <div class="section-subtitle">最近 24 小时内的 5 条重点波场资讯</div>
+          </div>
+          <div id="tronTime" class="section-subtitle">未更新</div>
+        </div>
+        <div id="tronList" class="list">
+          <div class="loading">等待数据…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      说明：这是最轻量的单文件版本。它使用第三方 RSS 转 JSON 服务读取新闻源，再把候选新闻发给 b.ai 处理。适合本地演示和个人使用；如果以后要公开给更多人使用，建议改成后端版本，把 API Key 放到服务端。
+    </div>
+  </div>
+
+  <script>
+    const FEEDS = [
+      {
+        name: "CoinDesk",
+        url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
+      },
+      {
+        name: "Blockworks",
+        url: "https://blockworks.co/feed"
+      }
+    ];
+
+    const BAI_BASE_URL = "https://api.b.ai/v1/chat/completions";
+    const BAI_MODEL = "gpt-5-mini";
+    const KEY_STORAGE = "crypto_news_bai_key";
+    const RESULT_STORAGE = "crypto_news_last_result_bai";
+    const AUTO_REFRESH_MS = 10 * 60 * 1000;
+
+    const apiKeyInput = document.getElementById("apiKey");
+    const saveBtn = document.getElementById("saveBtn");
+    const runBtn = document.getElementById("runBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const statusEl = document.getElementById("status");
+    const globalListEl = document.getElementById("globalList");
+    const tronListEl = document.getElementById("tronList");
+    const globalTimeEl = document.getElementById("globalTime");
+    const tronTimeEl = document.getElementById("tronTime");
+
+    function setStatus(text, type = "") {
+      statusEl.textContent = text;
+      statusEl.className = `status ${type}`.trim();
+    }
+
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function stripHtml(html = "") {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      return (div.textContent || div.innerText || "").replace(/\s+/g, " ").trim();
+    }
+
+    function formatTime(dateString) {
+      const d = new Date(dateString);
+      if (Number.isNaN(d.getTime())) return dateString || "";
+      return d.toLocaleString("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function saveKey() {
+      const key = apiKeyInput.value.trim();
+      if (!key) {
+        setStatus("先填入 b.ai API Key 再保存。", "error");
+        return;
+      }
+      localStorage.setItem(KEY_STORAGE, key);
+      setStatus("b.ai API Key 已保存在当前浏览器。", "ok");
+    }
+
+    function clearKey() {
+      localStorage.removeItem(KEY_STORAGE);
+      apiKeyInput.value = "";
+      setStatus("b.ai API Key 已清除。", "ok");
+    }
+
+    function loadSavedKey() {
+      const key = localStorage.getItem(KEY_STORAGE);
+      if (key) apiKeyInput.value = key;
+    }
+
+    async function fetchFeed(feed) {
+      const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`${feed.name} RSS 获取失败：${res.status}`);
+      }
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      return items.map(item => ({
+        source: feed.name,
+        title_en: stripHtml(item.title || ""),
+        summary_en: stripHtml(item.description || item.content || "").slice(0, 800),
+        link: item.link || "",
+        pub_time: item.pubDate || item.isoDate || ""
+      }));
+    }
+
+    function filterLast24Hours(items) {
+      const now = Date.now();
+      const cutoff = now - 24 * 60 * 60 * 1000;
+      return items.filter(item => {
+        const t = new Date(item.pub_time).getTime();
+        return !Number.isNaN(t) && t >= cutoff && t <= now;
+      });
+    }
+
+    function buildMessages(newsItems) {
+      const systemPrompt = [
+        "你是一个中文加密新闻编辑。",
+        "你只可以基于我提供的候选新闻处理，不要编造任何不存在的新闻。",
+        "你要输出两个榜单：global_top5 和 tron_top5。",
+        "global_top5 表示最近24小时内最重要的5条全球加密资讯。",
+        "tron_top5 表示最近24小时内的5条重点波场资讯，采用严格口径。",
+        "先做严格去重：同一事件多篇报道时，只保留信息最完整、最适合展示的一条。",
+        "global_top5 的排序规则：时间新鲜度 + 关键词权重，优先关注 ETF、SEC、regulation、lawsuit、hack、exploit、listing、upgrade、Binance、Coinbase、funding 等重大事件。",
+        "tron_top5 的严格口径：只保留明确以 TRON、TRX、Justin Sun、USDD、BTTC、TRC20 或波场生态、波场合作、波场升级、波场监管、波场市场异动为主角的新闻。只是顺带提到 TRX 的不算。",
+        "中文风格必须是中文资讯型，不要逐句硬翻。标题要短，简介只写一句话。",
+        "每条都必须包含：title、summary、source、time、link。",
+        "如果波场强相关不足5条，可以少于5条，但不要凑数。",
+        "必须严格返回 JSON 对象，不要 markdown，不要解释，不要代码块。"
+      ].join(" ");
+
+      const userPrompt = {
+        required_output: {
+          global_top5: [
+            { title: "", summary: "", source: "", time: "", link: "" }
+          ],
+          tron_top5: [
+            { title: "", summary: "", source: "", time: "", link: "" }
+          ]
+        },
+        candidate_news: newsItems
+      };
+
+      return [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: JSON.stringify(userPrompt) }
+      ];
+    }
+
+    async function callBAI(newsItems, apiKey) {
+      const res = await fetch(BAI_BASE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: BAI_MODEL,
+          messages: buildMessages(newsItems),
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+          max_tokens: 4000,
+          stream: false
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`b.ai 调用失败：${res.status} ${errText}`);
+      }
+
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      if (!text) {
+        throw new Error("b.ai 没有返回可用内容。请重试。");
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch (e) {
+        console.error("原始返回：", text);
+        throw new Error("b.ai 返回内容不是合法 JSON。请重试。");
+      }
+
+      return {
+        global_top5: Array.isArray(parsed.global_top5) ? parsed.global_top5.slice(0, 5) : [],
+        tron_top5: Array.isArray(parsed.tron_top5) ? parsed.tron_top5.slice(0, 5) : []
+      };
+    }
+
+    function renderList(el, items, emptyText) {
+      if (!Array.isArray(items) || items.length === 0) {
+        el.innerHTML = `<div class="loading">${escapeHtml(emptyText)}</div>`;
+        return;
+      }
+
+      el.innerHTML = items.map((item, idx) => `
+        <div class="card">
+          <div class="rank">${idx + 1}</div>
+          <div class="headline">${escapeHtml(item.title || "")}</div>
+          <div class="summary">${escapeHtml(item.summary || "")}</div>
+          <div class="row">
+            <span>来源：${escapeHtml(item.source || "")}</span>
+            <span>时间：${escapeHtml(formatTime(item.time || ""))}</span>
+          </div>
+          <div><a class="link" href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">查看原文</a></div>
+        </div>
+      `).join("");
+    }
+
+    function persistResult(result) {
+      localStorage.setItem(RESULT_STORAGE, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        result
+      }));
+    }
+
+    function loadLastResult() {
+      const raw = localStorage.getItem(RESULT_STORAGE);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function renderResult(result, savedAt = new Date().toISOString()) {
+      renderList(globalListEl, result.global_top5 || [], "最近 24 小时内没有可展示的全球热点。");
+      renderList(tronListEl, result.tron_top5 || [], "最近 24 小时内没有足够强相关的波场资讯。");
+      const timeLabel = `更新于 ${formatTime(savedAt)}`;
+      globalTimeEl.textContent = timeLabel;
+      tronTimeEl.textContent = timeLabel;
+    }
+
+    async function runOnce() {
+      const apiKey = apiKeyInput.value.trim() || localStorage.getItem(KEY_STORAGE) || "";
+      if (!apiKey) {
+        setStatus("请先填入并保存 b.ai API Key。", "error");
+        return;
+      }
+
+      runBtn.disabled = true;
+      runBtn.textContent = "更新中…";
+      setStatus("正在读取 RSS 并生成两个榜单，请稍等…");
+
+      try {
+        const feedResults = await Promise.all(FEEDS.map(fetchFeed));
+        const merged = feedResults.flat();
+        const recent = filterLast24Hours(merged);
+
+        if (!recent.length) {
+          throw new Error("最近 24 小时内没有抓到可用新闻。可以稍后重试。");
+        }
+
+        const result = await callBAI(recent, apiKey);
+        persistResult(result);
+        renderResult(result, new Date().toISOString());
+        setStatus(`更新成功：候选新闻 ${recent.length} 条，已生成全球榜和波场榜。`, "ok");
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || "更新失败，请打开控制台查看详情。", "error");
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = "立即更新";
+      }
+    }
+
+    saveBtn.addEventListener("click", saveKey);
+    clearBtn.addEventListener("click", clearKey);
+    runBtn.addEventListener("click", runOnce);
+
+    loadSavedKey();
+    const cached = loadLastResult();
+    if (cached?.result) {
+      renderResult(cached.result, cached.savedAt);
+      setStatus("已加载上次结果。点“立即更新”可获取最新榜单。", "ok");
+    }
+
+    setInterval(runOnce, AUTO_REFRESH_MS);
+  </script>
+</body>
+</html>
