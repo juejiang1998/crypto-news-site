@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>今日加密热点</title>
 </head>
+
 <body style="background:#0b1020;color:#fff;font-family:sans-serif;padding:20px;">
 
 <h1>今日加密热点</h1>
@@ -13,10 +14,10 @@
 <button onclick="run()">立即更新</button>
 
 <h2>全球加密资讯</h2>
-<div id="global">加载中...</div>
+<div id="global">暂无数据</div>
 
 <h2>波场资讯</h2>
-<div id="tron">加载中...</div>
+<div id="tron">暂无数据</div>
 
 <script>
 const FEEDS = [
@@ -24,78 +25,93 @@ const FEEDS = [
   "https://api.rss2json.com/v1/api.json?rss_url=https://blockworks.co/feed"
 ];
 
-// 🔥 已改：走你自己的接口
+// ✅ 关键：走你的后端
 const API_URL = "/api/news";
 
+// 获取新闻
 async function getNews() {
   let all = [];
 
   for (let url of FEEDS) {
-    const res = await fetch(url);
-    const data = await res.json();
-    all = all.concat(data.items || []);
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      all = all.concat(data.items || []);
+    } catch (e) {
+      console.log("RSS失败:", e);
+    }
   }
 
   const now = Date.now();
-  const dayAgo = now - 24*60*60*1000;
+  const dayAgo = now - 24 * 60 * 60 * 1000;
 
-  return all.filter(item => {
-    const t = new Date(item.pubDate).getTime();
-    return t > dayAgo;
-  }).map(i => ({
-    title_en: i.title,
-    summary_en: i.description?.slice(0,300),
-    link: i.link,
-    pub_time: i.pubDate,
-    source: i.author || "unknown"
-  }));
+  return all
+    .filter(item => new Date(item.pubDate).getTime() > dayAgo)
+    .map(i => ({
+      title_en: i.title,
+      summary_en: i.description?.replace(/<[^>]+>/g, "").slice(0,200),
+      link: i.link
+    }));
 }
 
+// 主逻辑
 async function run() {
   document.getElementById("global").innerHTML = "加载中...";
   document.getElementById("tron").innerHTML = "加载中...";
 
-  const news = await getNews();
-
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      model: "gpt-5-mini",
-      messages: [
-        {role:"system",content:"你是加密新闻编辑，输出JSON"},
-        {role:"user",content: JSON.stringify({news})}
-      ]
-    })
-  });
-
-  const data = await res.json();
-
-  let content = data?.choices?.[0]?.message?.content || "{}";
-
   try {
+    const news = await getNews();
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "gpt-5-mini",
+        messages: [
+          {
+            role: "system",
+            content: "你是加密新闻编辑，请从新闻中选出最重要内容并翻译成中文。输出 JSON：{global_top5:[{title,summary,link}], tron_top5:[{title,summary,link}]}"
+          },
+          {
+            role: "user",
+            content: JSON.stringify({ news })
+          }
+        ]
+      })
+    });
+
+    const raw = await res.text();
+    console.log("API返回：", raw);
+
+    if (!raw) throw new Error("接口返回为空");
+
+    const data = JSON.parse(raw);
+    const content = data?.choices?.[0]?.message?.content || "{}";
+
     const parsed = JSON.parse(content);
 
     render("global", parsed.global_top5 || []);
     render("tron", parsed.tron_top5 || []);
 
-  } catch(e) {
-    document.getElementById("global").innerHTML = "解析失败";
-    document.getElementById("tron").innerHTML = "解析失败";
+  } catch (e) {
+    console.error(e);
+    document.getElementById("global").innerHTML = "加载失败";
+    document.getElementById("tron").innerHTML = "加载失败";
   }
 }
 
+// 渲染
 function render(id, list) {
   if (!list.length) {
     document.getElementById(id).innerHTML = "暂无数据";
     return;
   }
 
-  document.getElementById(id).innerHTML = list.map((i,idx)=>`
-    <div style="margin-bottom:10px">
-      <b>${idx+1}. ${i.title}</b><br/>
+  document.getElementById(id).innerHTML = list.map((i, idx) => `
+    <div style="margin-bottom:12px">
+      <b>${idx + 1}. ${i.title}</b><br/>
       <span>${i.summary}</span><br/>
-      <a href="${i.link}" target="_blank">查看</a>
+      <a href="${i.link}" target="_blank">查看原文</a>
     </div>
   `).join("");
 }
